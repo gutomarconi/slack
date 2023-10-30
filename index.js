@@ -34,13 +34,12 @@ app.post('/api/slack/events', async (req, res) => {
   if (req.body.type === 'url_verification') {
     res.send(req.body.challenge)
   }
-  console.log(req.body);
   const { event: { type, reaction, item } } = req.body;
 
   if (type === 'reaction_added' && reaction === 'dog') {
     const { channel, ts } = item;
     console.log(ts);
-    const data = await axios.post('https://slack.com/api/chat.postMessage', {
+    const { data } = await axios.post('https://slack.com/api/chat.postMessage', {
       channel,
       text: 'I see you added our little dog, we will see what we can find', // this can be a block of texts (as collections) or attachments,
       reply_broadcast: true,
