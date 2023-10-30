@@ -30,34 +30,12 @@ app.get('/api/slack', async (req, res) => {
 })
 
 app.post('/api/slack/events', async (req, res) => {
-  // res.send(req.body.challenge);
-
-  await axios.post('https://slack.com/api/chat.postMessage', {
-    channel: 'C063CCU9Q7M',
-    text: 'someone reacted with an emoji '
-  },
-  {
-    headers: { Authorization: `Bearer ${SLACK_TOKEN}` },
-    
-  })
-  res.send(req.body)
+  res.send(req.body.type === 'url_verification' ? req.body.challenge : req.body.type)
   res.end();
 });
 
 app.post('/api/slack/slash', async (req, res) => {
-  // res.send(req.body.challenge);
-
-  await axios.post('https://slack.com/api/chat.postMessage', {
-    channel: 'C063CCU9Q7M',
-    text: 'someone used o forward slash kms'
-  },
-  {
-    headers: { Authorization: `Bearer ${SLACK_TOKEN}` },
-    
-  })
-
-  res.send(req.body)
-
+  res.send(`Your question: ${req.body} -> We will see what we can find`)
   res.end();
 });
 
