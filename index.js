@@ -36,6 +36,7 @@ const getChatGPTAnswer = async (question) => {
   const chatCompletion = await openai.chat.completions.create({
     messages: [{ role: "user", content: question }],
     model: "gpt-3.5-turbo",
+    n: 1,
     // best_of: 1,
   });
     
@@ -76,6 +77,12 @@ const handleSlashEvent = async (channel, question) => {
   postMessageToSlack(channel, undefined, answer);
 }
 
+const handleReactionEvent = async (channel, ts) => {
+  const question = await getSlackMessage(channel, ts)
+  const answer = await getChatGPTAnswer(question);
+  postMessageToSlack(channel, ts, answer);
+}
+
 app.post('/api/slack/events', async (req, res) => {
   if (req.body.type === EventTypes.UrlVerification) {
     res.send(req.body.challenge)
@@ -84,32 +91,16 @@ app.post('/api/slack/events', async (req, res) => {
 
   if (type === EventTypes.ReactionAdded && reaction === KMS_EMOJI) {
     const { channel, ts } = item;
-
-    const question = await getSlackMessage(channel, ts)
-    const answer = await getChatGPTAnswer(question);
-    postMessageToSlack(channel, ts, answer);
+    handleReactionEvent(channel, ts)
   }
   res.end();
 });
 
 app.post('/api/slack/slash', async (req, res) => {
   try {
-    handleSlashEvent(req.body.channel_id, req.body.text)
-    res.end();
+    const { body: { channel_id, text}} = req;
+    handleSlashEvent(channel_id, text)
   } catch(error) {
-    console.log(error)
-    res.send(error);
-  }
-  res.end();
-});
-
-app.get('/api/slack/chat', async (req, res) => {
-  try {
-    res.send(200)
-    const answer = await getChatGPTAnswer('qual melhor carro em 2023');
-    res.send(answer);
-  } catch(error) {
-    console.log(error)
     res.send(error);
   }
   res.end();
