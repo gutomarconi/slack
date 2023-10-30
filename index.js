@@ -36,6 +36,7 @@ const getChatGPTAnswer = async (question) => {
   const chatCompletion = await openai.chat.completions.create({
     messages: [{ role: "user", content: question }],
     model: "gpt-3.5-turbo",
+    best_of: 1,
   });
     
   const [choice] = chatCompletion.choices;
@@ -58,6 +59,19 @@ const getSlackMessage = async (channel, ts) => {
   return originalMessage.text;
 }
 
+const postMessageToSlack = async (channel, text) => {
+  await axios.post(SLACK_POST_MESSAGE_ENDPOINT, { // DOCS: https://api.slack.com/methods/chat.postMessage
+    channel,
+    text, // this can be a block of texts (as collections) or attachments,
+    reply_broadcast: true, // visibility
+    thread_ts: ts // Indicates if it will reply as a thread
+  },
+  {
+    headers: { Authorization: `Bearer ${BOT_TOKEN}` },
+  })
+
+}
+
 app.post('/api/slack/events', async (req, res) => {
   if (req.body.type === EventTypes.UrlVerification) {
     res.send(req.body.challenge)
@@ -69,22 +83,38 @@ app.post('/api/slack/events', async (req, res) => {
 
     const question = await getSlackMessage(channel, ts)
     const answer = await getChatGPTAnswer(question);
-    await axios.post(SLACK_POST_MESSAGE_ENDPOINT, { // DOCS: https://api.slack.com/methods/chat.postMessage
-      channel,
-      text: answer, // this can be a block of texts (as collections) or attachments,
-      reply_broadcast: true, // visibility
-      thread_ts: ts // Indicates if it will reply as a thread
-    },
-    {
-      headers: { Authorization: `Bearer ${BOT_TOKEN}` },
-    })
+    postMessageToSlack(channel, answer);
+    // await axios.post(SLACK_POST_MESSAGE_ENDPOINT, { // DOCS: https://api.slack.com/methods/chat.postMessage
+    //   channel,
+    //   text: answer, // this can be a block of texts (as collections) or attachments,
+    //   reply_broadcast: true, // visibility
+    //   thread_ts: ts // Indicates if it will reply as a thread
+    // },
+    // {
+    //   headers: { Authorization: `Bearer ${BOT_TOKEN}` },
+    // })
   }
   res.end();
 });
 
 app.post('/api/slack/slash', async (req, res) => {
   try {
+    console.log(req)
+    // postMessageToSlack(channel, answer);
+    // res.send('loading...')
     const answer = await getChatGPTAnswer(req.body.text);
+    res.send(answer);
+  } catch(error) {
+    console.log(error)
+    res.send(error);
+  }
+  res.end();
+});
+
+app.get('/api/slack/chat', async (req, res) => {
+  try {
+    res.send(200)
+    const answer = await getChatGPTAnswer('qual melhor carro em 2023');
     res.send(answer);
   } catch(error) {
     console.log(error)
