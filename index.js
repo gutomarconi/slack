@@ -7,7 +7,7 @@ const axios = require('axios')
 dotenv.config()
 
 const PORT = process.env.PORT || 5000
-const SLACK_TOKEN = process.env.SLACK_TOKEN || ''
+const SLACK_TOKEN = process.env.SLACK_TOKEN || '' // if we need to
 const BOT_TOKEN = process.env.SLACK_BOT_TOKEN || ''
 
 const app = express()
@@ -18,40 +18,32 @@ app.use(cors({
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 
-app.get('/api/slack', async (req, res) => {
-  await axios.post('https://slack.com/api/chat.postMessage', {
-    channel: 'C063CCU9Q7M',
-    text: 'new message'
-  },
-  {
-    headers: { Authorization: `Bearer ${SLACK_TOKEN}` },
-    
-  })
-  res.end();
-})
+const KMS_EMOJI = 'dog';
+const SLACK_POST_MESSAGE_ENDPOINT = 'https://slack.com/api/chat.postMessage';
+
+const EventTypes = {
+  UrlVerification: 'url_verification',
+  ReactionAdded: 'reaction_added'
+}
 
 app.post('/api/slack/events', async (req, res) => {
-  if (req.body.type === 'url_verification') {
+  if (req.body.type === EventTypes.UrlVerification) {
     res.send(req.body.challenge)
   }
   const { event: { type, reaction, item } } = req.body;
 
-  if (type === 'reaction_added' && reaction === 'dog') {
+  if (type === EventTypes.ReactionAdded && reaction === KMS_EMOJI) {
     const { channel, ts } = item;
-    console.log(ts);
-    const { data } = await axios.post('https://slack.com/api/chat.postMessage', {
+    await axios.post(SLACK_POST_MESSAGE_ENDPOINT, { // DOCS: https://api.slack.com/methods/chat.postMessage
       channel,
       text: 'I see you added our little dog, we will see what we can find', // this can be a block of texts (as collections) or attachments,
-      reply_broadcast: true,
-      thread_ts: ts
+      reply_broadcast: true, // visibility
+      thread_ts: ts // Indicates if it will reply as a thread
     },
     {
       headers: { Authorization: `Bearer ${BOT_TOKEN}` },
     })
-    console.log(data);
   }
-  
-  res.send('ok')
   res.end();
 });
 
