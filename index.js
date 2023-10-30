@@ -34,7 +34,22 @@ app.post('/api/slack/events', async (req, res) => {
 
   await axios.post('https://slack.com/api/chat.postMessage', {
     channel: 'U01BE2EU58F',
-    text: 'teste new message '
+    text: 'someone reacted with an emoji '
+  },
+  {
+    headers: { Authorization: `Bearer ${SLACK_TOKEN}` },
+    
+  })
+
+  res.end();
+});
+
+app.post('/api/slack/slash', async (req, res) => {
+  res.send(req.body.challenge);
+
+  await axios.post('https://slack.com/api/chat.postMessage', {
+    channel: 'U01BE2EU58F',
+    text: 'someone used o forward slash kms'
   },
   {
     headers: { Authorization: `Bearer ${SLACK_TOKEN}` },
