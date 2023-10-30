@@ -36,7 +36,7 @@ const getChatGPTAnswer = async (question) => {
   const chatCompletion = await openai.chat.completions.create({
     messages: [{ role: "user", content: question }],
     model: "gpt-3.5-turbo",
-    best_of: 1,
+    // best_of: 1,
   });
     
   const [choice] = chatCompletion.choices;
