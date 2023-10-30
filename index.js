@@ -29,10 +29,18 @@ app.get('/api/slack', async (req, res) => {
   res.end();
 })
 
-app.post('/api/slack/events', (req, res) => {
-  console.log(req.body);
-
+app.post('/api/slack/events', async (req, res) => {
   res.send(req.body.challenge);
+
+  await axios.post('https://slack.com/api/chat.postMessage', {
+    channel: 'U01BE2EU58F',
+    text: 'teste new message '
+  },
+  {
+    headers: { Authorization: `Bearer ${SLACK_TOKEN}` },
+    
+  })
+
   res.end();
 });
 
