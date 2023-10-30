@@ -49,7 +49,7 @@ app.post('/api/slack/events', async (req, res) => {
   const { event: { type, reaction, item } } = req.body;
 
   if (type === EventTypes.ReactionAdded && reaction === KMS_EMOJI) {
-    console.log(item);
+    console.log(req.body);
     const { channel, ts } = item;
     await axios.post(SLACK_POST_MESSAGE_ENDPOINT, { // DOCS: https://api.slack.com/methods/chat.postMessage
       channel,
@@ -66,33 +66,20 @@ app.post('/api/slack/events', async (req, res) => {
 
 app.post('/api/slack/slash', async (req, res) => {
   try {
-    const answer = await getChatGPTAnswer(req.body.text);
-    res.send(answer);
+    // const answer = await getChatGPTAnswer(req.body.text);
+    const chatCompletion = await openai.chat.completions.create({
+      messages: [{ role: "user", content: req.body.text }],
+      model: "gpt-3.5-turbo",
+    });
+  
+    const [choice] = chatCompletion.choices;
+    res.send(choice.message.content);
   } catch(error) {
     console.log(error)
     res.send(error);
   }
   res.end();
 });
-
-app.get('/api/slack/chat', async (req, res) => {
-  try {
-    const chatCompletion = await openai.chat.completions.create({
-      messages: [{ role: "user", content: "Who are the last 10 FIFA world cup champtions" }],
-      model: "gpt-3.5-turbo",
-    });
-    console.log('deu')
-    chatCompletion.choices.map(choice => console.log(choice))
-  
-  } catch(error) {
-    console.log(error)
-  }
-  res.send('ok')
-
-  res.end();
-  
-  
-})
 
 app.listen(PORT, function () {
   console.log(`Express app listening on port ${PORT}`)
