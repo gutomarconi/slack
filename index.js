@@ -13,7 +13,7 @@ const BOT_TOKEN = process.env.SLACK_BOT_TOKEN || ''
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || ''
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: OPENAI_API_KEY,
 });
 
 const app = express()
@@ -37,9 +37,25 @@ const getChatGPTAnswer = async (question) => {
     messages: [{ role: "user", content: question }],
     model: "gpt-3.5-turbo",
   });
-
+    
   const [choice] = chatCompletion.choices;
-  return choice.message.content;
+  const { content } = choice.message;
+  return content;
+}
+
+const getSlackMessage = async (channel, ts) => {
+  const messageData = await axios({
+    url: 'https://slack.com/api/conversations.history', 
+    params: {
+      channel,
+      latest: ts,
+      "limit": 1,
+      "inclusive": true
+    }, 
+    headers: { Authorization: `Bearer ${BOT_TOKEN}` },
+  });
+  const [originalMessage] = messageData.data.messages;
+  return originalMessage.text;
 }
 
 app.post('/api/slack/events', async (req, res) => {
@@ -51,34 +67,11 @@ app.post('/api/slack/events', async (req, res) => {
   if (type === EventTypes.ReactionAdded && reaction === KMS_EMOJI) {
     const { channel, ts } = item;
 
-    const messageData = await axios({
-      url: 'https://slack.com/api/conversations.history', 
-      params: {
-        channel,
-        latest: ts,
-        "limit": 1,
-        "inclusive": true
-      }, 
-      headers: { Authorization: `Bearer ${BOT_TOKEN}` },
-    });
-
-    console.log(messageData);
-    const [originalMessage] = messageData.data.messages;
-
-    const chatCompletion = await openai.chat.completions.create({
-      messages: [{ role: "user", content: originalMessage.text }],
-      model: "gpt-3.5-turbo",
-    });
-  
-    const [choice] = chatCompletion.choices;
-    console.log(choice);
-    const { content } = choice.message;
-
-    console.log(content);
-
+    const question = await getSlackMessage(channel, ts)
+    const answer = await getChatGPTAnswer(question);
     await axios.post(SLACK_POST_MESSAGE_ENDPOINT, { // DOCS: https://api.slack.com/methods/chat.postMessage
       channel,
-      text: choice.message, // this can be a block of texts (as collections) or attachments,
+      text: answer, // this can be a block of texts (as collections) or attachments,
       reply_broadcast: true, // visibility
       thread_ts: ts // Indicates if it will reply as a thread
     },
@@ -91,19 +84,8 @@ app.post('/api/slack/events', async (req, res) => {
 
 app.post('/api/slack/slash', async (req, res) => {
   try {
-    // const answer = await getChatGPTAnswer(req.body.text);
-    const chatCompletion = await openai.chat.completions.create({
-      messages: [{ role: "user", content: req.body.text }],
-      model: "gpt-3.5-turbo",
-    });
-  
-    console.log(chatCompletion.choices);
-    const [choice] = chatCompletion.choices;
-    console.log(choice);
-    const { content } = choice.message;
-
-    console.log(content);
-    res.send(choice.message);
+    const answer = await getChatGPTAnswer(req.body.text);
+    res.send(answer);
   } catch(error) {
     console.log(error)
     res.send(error);
