@@ -71,7 +71,7 @@ const postMessageToSlack = async (channel, ts, text) => {
   })
 }
 
-const handleSlashEvent = async (channel, ts, question) => {
+const handleSlashEvent = async (channel, question) => {
   const answer = await getChatGPTAnswer(question);
   postMessageToSlack(channel, undefined, answer);
 }
@@ -95,7 +95,7 @@ app.post('/api/slack/events', async (req, res) => {
 app.post('/api/slack/slash', async (req, res) => {
   try {
     handleSlashEvent(req.body.channel_id, req.body.text)
-    res.sendStatus(200);
+    res.end();
   } catch(error) {
     console.log(error)
     res.send(error);
