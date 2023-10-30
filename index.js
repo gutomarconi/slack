@@ -30,7 +30,7 @@ app.get('/api/slack', async (req, res) => {
 })
 
 app.post('/api/slack/events', async (req, res) => {
-  res.send(req.body.challenge);
+  // res.send(req.body.challenge);
 
   await axios.post('https://slack.com/api/chat.postMessage', {
     channel: 'U01BE2EU58F',
@@ -40,12 +40,12 @@ app.post('/api/slack/events', async (req, res) => {
     headers: { Authorization: `Bearer ${SLACK_TOKEN}` },
     
   })
-
+  res.send('ok')
   res.end();
 });
 
 app.post('/api/slack/slash', async (req, res) => {
-  res.send(req.body.challenge);
+  // res.send(req.body.challenge);
 
   await axios.post('https://slack.com/api/chat.postMessage', {
     channel: 'U01BE2EU58F',
@@ -55,6 +55,8 @@ app.post('/api/slack/slash', async (req, res) => {
     headers: { Authorization: `Bearer ${SLACK_TOKEN}` },
     
   })
+
+  res.send('ok')
 
   res.end();
 });
