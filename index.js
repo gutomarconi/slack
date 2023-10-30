@@ -58,7 +58,7 @@ app.post('/api/slack/slash', async (req, res) => {
   try {
     
     const chatCompletion = await openai.chat.completions.create({
-      messages: [{ role: "user", content: req.body }],
+      messages: [{ role: "user", content: req.body.text }],
       model: "gpt-3.5-turbo",
     });
 
