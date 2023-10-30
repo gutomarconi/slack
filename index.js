@@ -70,10 +70,11 @@ app.post('/api/slack/events', async (req, res) => {
       model: "gpt-3.5-turbo",
     });
   
-    console.log(chatCompletion.choices);
     const [choice] = chatCompletion.choices;
     console.log(choice);
-    // res.send(choice.message.content);
+    const { content } = choice.message;
+
+    console.log(content);
 
     await axios.post(SLACK_POST_MESSAGE_ENDPOINT, { // DOCS: https://api.slack.com/methods/chat.postMessage
       channel,
@@ -99,6 +100,9 @@ app.post('/api/slack/slash', async (req, res) => {
     console.log(chatCompletion.choices);
     const [choice] = chatCompletion.choices;
     console.log(choice);
+    const { content } = choice.message;
+
+    console.log(content);
     res.send(choice.message);
   } catch(error) {
     console.log(error)
