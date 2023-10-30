@@ -35,9 +35,8 @@ const EventTypes = {
 const getChatGPTAnswer = async (question) => {
   const chatCompletion = await openai.chat.completions.create({
     messages: [{ role: "user", content: question }],
-    model: "gpt-3.5-turbo",
-    n: 1,
-    // best_of: 1,
+    model: "gpt-3.5-turbo", // didn't understand much of it but, it seems to be to defined what LLM (or db?) it will use
+    n: 1, // number of results, which also impact in the consumed tokens for the paid version
   });
     
   const [choice] = chatCompletion.choices;
@@ -64,7 +63,6 @@ const postMessageToSlack = async (channel, ts, text) => {
   await axios.post(SLACK_POST_MESSAGE_ENDPOINT, { // DOCS: https://api.slack.com/methods/chat.postMessage
     channel,
     text, // this can be a block of texts (as collections) or attachments,
-    reply_broadcast: true, // visibility
     thread_ts: ts // Indicates if it will reply as a thread
   },
   {
