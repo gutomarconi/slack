@@ -8,6 +8,7 @@ dotenv.config()
 
 const PORT = process.env.PORT || 5000
 const SLACK_TOKEN = process.env.SLACK_TOKEN || ''
+const BOT_TOKEN = process.env.SLACK_BOT_TOKEN || ''
 
 const app = express()
 app.use(cors({
@@ -46,7 +47,7 @@ app.post('/api/slack/events', async (req, res) => {
       thread_ts: ts
     },
     {
-      headers: { Authorization: `Bearer ${SLACK_TOKEN}` },
+      headers: { Authorization: `Bearer ${BOT_TOKEN}` },
     })
     console.log(data);
   }
