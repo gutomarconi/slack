@@ -54,16 +54,21 @@ app.post('/api/slack/events', async (req, res) => {
 });
 
 app.post('/api/slack/slash', async (req, res) => {
+  console.log(req.body);
   try {
+    
     const chatCompletion = await openai.chat.completions.create({
       messages: [{ role: "user", content: req.body }],
       model: "gpt-3.5-turbo",
     });
+
     const [choice] = chatCompletion.choices;
+    console.log(choice)
     res.send(choice.message);
   
   } catch(error) {
     console.log(error)
+    res.send(error);
   }
   res.end();
 });
