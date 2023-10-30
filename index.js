@@ -73,7 +73,7 @@ app.post('/api/slack/events', async (req, res) => {
     console.log(chatCompletion.choices);
     const [choice] = chatCompletion.choices;
     console.log(choice);
-    res.send(choice.message.content);
+    // res.send(choice.message.content);
 
     await axios.post(SLACK_POST_MESSAGE_ENDPOINT, { // DOCS: https://api.slack.com/methods/chat.postMessage
       channel,
