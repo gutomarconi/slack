@@ -51,21 +51,33 @@ app.post('/api/slack/events', async (req, res) => {
   if (type === EventTypes.ReactionAdded && reaction === KMS_EMOJI) {
     const { channel, ts } = item;
 
-    const messageData = await axios.get('https://slack.com/api/conversations.history', {
-      channel,
-      latest: ts,
-      "limit": 1,
-      "inclusive": true
-    }, 
-    {
+    const messageData = await axios({
+      url: 'https://slack.com/api/conversations.history', 
+      params: {
+        channel,
+        latest: ts,
+        "limit": 1,
+        "inclusive": true
+      }, 
       headers: { Authorization: `Bearer ${BOT_TOKEN}` },
     });
 
     console.log(messageData);
-    
+    const [originalMessage] = messageData.messages;
+
+    const chatCompletion = await openai.chat.completions.create({
+      messages: [{ role: "user", content: originalMessage.text }],
+      model: "gpt-3.5-turbo",
+    });
+  
+    console.log(chatCompletion.choices);
+    const [choice] = chatCompletion.choices;
+    console.log(choice);
+    res.send(choice.message.content);
+
     await axios.post(SLACK_POST_MESSAGE_ENDPOINT, { // DOCS: https://api.slack.com/methods/chat.postMessage
       channel,
-      text: 'I see you added our little dog, we will see what we can find', // this can be a block of texts (as collections) or attachments,
+      text: choice.message, // this can be a block of texts (as collections) or attachments,
       reply_broadcast: true, // visibility
       thread_ts: ts // Indicates if it will reply as a thread
     },
