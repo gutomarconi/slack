@@ -30,7 +30,11 @@ app.get('/api/slack', async (req, res) => {
 })
 
 app.post('/api/slack/events', async (req, res) => {
-  res.send(req.body.type === 'url_verification' ? req.body.challenge : req.body.type)
+  if (req.body.type === 'url_verification') {
+    res.send(req.body.challenge)
+  }
+  console.log('teste');
+  res.send('vamos ver')
   res.end();
 });
 
