@@ -49,8 +49,20 @@ app.post('/api/slack/events', async (req, res) => {
   const { event: { type, reaction, item } } = req.body;
 
   if (type === EventTypes.ReactionAdded && reaction === KMS_EMOJI) {
-    console.log(req.body);
     const { channel, ts } = item;
+
+    const messageData = await axios.get('https://slack.com/api/conversations.history', {
+      channel,
+      latest: ts,
+      "limit": 1,
+      "inclusive": true
+    }, 
+    {
+      headers: { Authorization: `Bearer ${BOT_TOKEN}` },
+    });
+
+    console.log(messageData);
+    
     await axios.post(SLACK_POST_MESSAGE_ENDPOINT, { // DOCS: https://api.slack.com/methods/chat.postMessage
       channel,
       text: 'I see you added our little dog, we will see what we can find', // this can be a block of texts (as collections) or attachments,
@@ -72,8 +84,10 @@ app.post('/api/slack/slash', async (req, res) => {
       model: "gpt-3.5-turbo",
     });
   
+    console.log(chatCompletion.choices);
     const [choice] = chatCompletion.choices;
-    res.send(choice.message.content);
+    console.log(choice);
+    res.send(choice.message);
   } catch(error) {
     console.log(error)
     res.send(error);
