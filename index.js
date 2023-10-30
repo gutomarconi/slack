@@ -19,7 +19,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
 
 app.get('/api/slack', async (req, res) => {
   await axios.post('https://slack.com/api/chat.postMessage', {
-    channel: 'U01BE2EU58F',
+    channel: 'C063CCU9Q7M',
     text: 'new message'
   },
   {
@@ -33,14 +33,14 @@ app.post('/api/slack/events', async (req, res) => {
   // res.send(req.body.challenge);
 
   await axios.post('https://slack.com/api/chat.postMessage', {
-    channel: 'U01BE2EU58F',
+    channel: 'C063CCU9Q7M',
     text: 'someone reacted with an emoji '
   },
   {
     headers: { Authorization: `Bearer ${SLACK_TOKEN}` },
     
   })
-  res.send('ok')
+  res.send(req.body)
   res.end();
 });
 
@@ -48,7 +48,7 @@ app.post('/api/slack/slash', async (req, res) => {
   // res.send(req.body.challenge);
 
   await axios.post('https://slack.com/api/chat.postMessage', {
-    channel: 'U01BE2EU58F',
+    channel: 'C063CCU9Q7M',
     text: 'someone used o forward slash kms'
   },
   {
@@ -56,7 +56,7 @@ app.post('/api/slack/slash', async (req, res) => {
     
   })
 
-  res.send('ok')
+  res.send(req.body)
 
   res.end();
 });
