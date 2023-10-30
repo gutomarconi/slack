@@ -35,7 +35,7 @@ app.post('/api/slack/events', async (req, res) => {
 });
 
 app.post('/api/slack/slash', async (req, res) => {
-  res.send(`Your question: ${req.body} -> We will see what we can find`)
+  res.send('We will see what we can find')
   res.end();
 });
 
