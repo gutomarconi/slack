@@ -59,7 +59,7 @@ const getSlackMessage = async (channel, ts) => {
   return originalMessage.text;
 }
 
-const postMessageToSlack = async (channel, text) => {
+const postMessageToSlack = async (channel, ts, text) => {
   await axios.post(SLACK_POST_MESSAGE_ENDPOINT, { // DOCS: https://api.slack.com/methods/chat.postMessage
     channel,
     text, // this can be a block of texts (as collections) or attachments,
@@ -69,7 +69,11 @@ const postMessageToSlack = async (channel, text) => {
   {
     headers: { Authorization: `Bearer ${BOT_TOKEN}` },
   })
+}
 
+const handleSlashEvent = async (channel, ts, question) => {
+  const answer = await getChatGPTAnswer(question);
+  postMessageToSlack(channel, undefined, answer);
 }
 
 app.post('/api/slack/events', async (req, res) => {
@@ -83,27 +87,15 @@ app.post('/api/slack/events', async (req, res) => {
 
     const question = await getSlackMessage(channel, ts)
     const answer = await getChatGPTAnswer(question);
-    postMessageToSlack(channel, answer);
-    // await axios.post(SLACK_POST_MESSAGE_ENDPOINT, { // DOCS: https://api.slack.com/methods/chat.postMessage
-    //   channel,
-    //   text: answer, // this can be a block of texts (as collections) or attachments,
-    //   reply_broadcast: true, // visibility
-    //   thread_ts: ts // Indicates if it will reply as a thread
-    // },
-    // {
-    //   headers: { Authorization: `Bearer ${BOT_TOKEN}` },
-    // })
+    postMessageToSlack(channel, ts, answer);
   }
   res.end();
 });
 
 app.post('/api/slack/slash', async (req, res) => {
   try {
-    console.log(req)
-    // postMessageToSlack(channel, answer);
-    // res.send('loading...')
-    const answer = await getChatGPTAnswer(req.body.text);
-    res.send(answer);
+    handleSlashEvent(req.body.channel_id, req.body.text)
+    res.sendStatus(200);
   } catch(error) {
     console.log(error)
     res.send(error);
