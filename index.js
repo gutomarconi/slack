@@ -32,6 +32,16 @@ const EventTypes = {
   ReactionAdded: 'reaction_added'
 }
 
+const getChatGPTAnswer = async (question) => {
+  const chatCompletion = await openai.chat.completions.create({
+    messages: [{ role: "user", content: question }],
+    model: "gpt-3.5-turbo",
+  });
+
+  const [choice] = chatCompletion.choices;
+  return choice.message.content;
+}
+
 app.post('/api/slack/events', async (req, res) => {
   if (req.body.type === EventTypes.UrlVerification) {
     res.send(req.body.challenge)
@@ -39,6 +49,7 @@ app.post('/api/slack/events', async (req, res) => {
   const { event: { type, reaction, item } } = req.body;
 
   if (type === EventTypes.ReactionAdded && reaction === KMS_EMOJI) {
+    console.log(item);
     const { channel, ts } = item;
     await axios.post(SLACK_POST_MESSAGE_ENDPOINT, { // DOCS: https://api.slack.com/methods/chat.postMessage
       channel,
@@ -54,18 +65,9 @@ app.post('/api/slack/events', async (req, res) => {
 });
 
 app.post('/api/slack/slash', async (req, res) => {
-  console.log(req.body);
   try {
-    
-    const chatCompletion = await openai.chat.completions.create({
-      messages: [{ role: "user", content: req.body.text }],
-      model: "gpt-3.5-turbo",
-    });
-
-    const [choice] = chatCompletion.choices;
-    console.log(choice)
-    res.send(choice.message);
-  
+    const answer = await getChatGPTAnswer(req.body.text);
+    res.send(answer);
   } catch(error) {
     console.log(error)
     res.send(error);
