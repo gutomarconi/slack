@@ -63,7 +63,7 @@ app.post('/api/slack/events', async (req, res) => {
     });
 
     console.log(messageData);
-    const [originalMessage] = messageData.messages;
+    const [originalMessage] = messageData.data.messages;
 
     const chatCompletion = await openai.chat.completions.create({
       messages: [{ role: "user", content: originalMessage.text }],
